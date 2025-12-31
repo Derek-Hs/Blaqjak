@@ -9,6 +9,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +25,7 @@ import com.example.blaccjacc.model.GameState
 import com.example.blaccjacc.model.PlayerAction
 import com.example.blaccjacc.model.Suit
 import com.example.blaccjacc.model.StrategyDeviation
+import kotlinx.coroutines.launch
 
 @Composable
 fun BlackjackGameView(
@@ -35,48 +38,94 @@ fun BlackjackGameView(
 
     val verticalSpacing = if (isLandscape) 8.dp else 16.dp
     val padding = if (isLandscape) 8.dp else 16.dp
+    val buttonHeight = if (isLandscape) 44.dp else 56.dp
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    // Show toast when toastMessage changes
+    androidx.compose.runtime.LaunchedEffect(uiState.toastMessage) {
+        uiState.toastMessage?.let { toast ->
+            // Cancel any existing snackbar
+            snackbarHostState.currentSnackbarData?.dismiss()
+
+            val snackbarJob = coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    message = toast.message,
+                    duration = SnackbarDuration.Indefinite
+                )
+            }
+            kotlinx.coroutines.delay(500)
+            snackbarJob.cancel()
+        }
+    }
 
     Surface(
         modifier = modifier.fillMaxSize(),
         color = Color(0xFF0D5A2C)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Dealer Section
-            Row(modifier = Modifier.weight(3f)) {
-                DealerSection(uiState)
-            }
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Dealer Section
+                Row(modifier = Modifier.weight(3f)) {
+                    DealerSection(uiState)
+                }
 
-            // Game Result
-            Row(modifier = Modifier.weight(2f)) {
-                if (uiState.gameState == GameState.GAME_OVER) {
-                    if (uiState.hasSplit) {
-                        MultiHandResultDisplay(uiState.handResults)
-                    } else {
-                        val firstResult =
-                            uiState.gameResults.firstOrNull()?.second ?: GameResult.IN_PROGRESS
-                        GameResultDisplay(firstResult)
+                // Game Result
+                Row(modifier = Modifier.weight(2f)) {
+                    if (uiState.gameState == GameState.GAME_OVER) {
+                        if (uiState.hasSplit) {
+                            MultiHandResultDisplay(uiState.handResults)
+                        } else {
+                            val firstResult =
+                                uiState.gameResults.firstOrNull()?.second ?: GameResult.IN_PROGRESS
+                            GameResultDisplay(firstResult)
+                        }
                     }
+                }
+
+                Row(modifier = Modifier.weight(3f)) {
+                    PlayerSection(uiState)
+                }
+
+                Row(modifier = Modifier.weight(1f)) {
+                    // Action Buttons
+                    ActionButtons(
+                        uiState = uiState,
+                        onHit = { controller.hit() },
+                        onStand = { controller.stand() },
+                        onDouble = { controller.double() },
+                        onSplit = { controller.split() },
+                        onNewHand = { controller.startNewHand() }
+                    )
                 }
             }
 
-            Row(modifier = Modifier.weight(3f)) {
-                PlayerSection(uiState)
-            }
-
-            Row(modifier = Modifier.weight(1f)) {
-                // Action Buttons
-                ActionButtons(
-                    uiState = uiState,
-                    onHit = { controller.hit() },
-                    onStand = { controller.stand() },
-                    onDouble = { controller.double() },
-                    onSplit = { controller.split() },
-                    onNewHand = { controller.startNewHand() }
+            // Snackbar Host for toast messages - positioned strictly above action buttons
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(
+                        bottom = if (isLandscape) {
+                            buttonHeight + (padding * 2) + 16.dp
+                        } else {
+                            buttonHeight + (padding * 2) + 24.dp
+                        }
+                    )
+            ) { snackbarData ->
+                val toast = uiState.toastMessage
+                Snackbar(
+                    snackbarData = snackbarData,
+                    containerColor = toast?.backgroundColor ?: Color.Gray,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
         }
@@ -359,7 +408,10 @@ fun GameResultDisplay(result: GameResult) {
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = color)
         ) {
-            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+            BoxWithConstraints(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
                 val calculatedSize = (maxHeight.value * 0.25f).sp
                 Text(
                     text = text,

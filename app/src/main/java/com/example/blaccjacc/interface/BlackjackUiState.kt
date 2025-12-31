@@ -1,10 +1,17 @@
 package com.example.blaccjacc.`interface`
 
+import androidx.compose.ui.graphics.Color
 import com.example.blaccjacc.model.Card
 import com.example.blaccjacc.model.GameResult
 import com.example.blaccjacc.model.GameState
 import com.example.blaccjacc.model.HandResult
 import com.example.blaccjacc.model.StrategyDeviation
+
+data class ToastMessage(
+    val message: String,
+    val backgroundColor: Color,
+    val timestamp: Long = System.currentTimeMillis()
+)
 
 data class PlayerHandUiState(
     val handIndex: Int,
@@ -37,5 +44,6 @@ data class BlackjackUiState(
     val followedBasicStrategy: Boolean = true,
     val handResults: List<HandResult> = emptyList(),
     val correctAction: com.example.blaccjacc.model.PlayerAction? = null,
-    val attemptedIncorrectActions: Set<com.example.blaccjacc.model.PlayerAction> = emptySet()
+    val attemptedIncorrectActions: Set<com.example.blaccjacc.model.PlayerAction> = emptySet(),
+    val toastMessage: ToastMessage? = null
 )

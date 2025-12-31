@@ -37,12 +37,12 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
         if (correctAction != null && action != correctAction) {
             // Incorrect action - mark as attempted but don't execute
             attemptedIncorrectActions.add(action)
-            updateUiState()
+            updateUiState(showToast = true, isCorrect = false)
         } else {
             // Correct action or no strategy requirement - execute
             if (execute()) {
                 attemptedIncorrectActions.clear()
-                updateUiState()
+                updateUiState(showToast = true, isCorrect = true)
             }
         }
     }
@@ -105,7 +105,7 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
         )
     }
 
-    private fun updateUiState() {
+    private fun updateUiState(showToast: Boolean = false, isCorrect: Boolean = false) {
         val dealerHand = engine.getDealerHand()
         val gameState = engine.getGameState()
         val gameOver = gameState == GameState.GAME_OVER
@@ -133,6 +133,16 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
         // Calculate correct action for current state
         val correctAction = getCurrentCorrectAction()
 
+        // Create toast message if needed
+        val toastMessage = if (showToast) {
+            com.example.blaccjacc.`interface`.ToastMessage(
+                message = if (isCorrect) "Correct" else "Incorrect",
+                backgroundColor = if (isCorrect) androidx.compose.ui.graphics.Color(0xFF4CAF50) else androidx.compose.ui.graphics.Color(0xFFF44336)
+            )
+        } else {
+            null
+        }
+
         _uiState.value = BlackjackUiState(
             playerHands = playerHandsUi,
             activeHandIndex = engine.getActiveHandIndex(),
@@ -152,7 +162,8 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
             followedBasicStrategy = analysisResult.followedBasicStrategy,
             handResults = if (gameOver) engine.getHandResults() else emptyList(),
             correctAction = correctAction,
-            attemptedIncorrectActions = attemptedIncorrectActions.toSet()
+            attemptedIncorrectActions = attemptedIncorrectActions.toSet(),
+            toastMessage = toastMessage
         )
     }
 }
