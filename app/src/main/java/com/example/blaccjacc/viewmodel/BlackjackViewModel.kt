@@ -18,6 +18,8 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
     override val uiState: StateFlow<BlackjackUiState> = _uiState.asStateFlow()
 
     private val attemptedIncorrectActions = mutableSetOf<PlayerAction>()
+    private var comboCount = 0
+    private var previousGameState = GameState.INITIAL
 
     init {
         startNewHand()
@@ -37,12 +39,13 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
         if (correctAction != null && action != correctAction) {
             // Incorrect action - mark as attempted but don't execute
             attemptedIncorrectActions.add(action)
+            comboCount = 0  // Reset combo on incorrect action
             updateUiState(showToast = true, isCorrect = false)
         } else {
             // Correct action or no strategy requirement - execute
             if (execute()) {
                 attemptedIncorrectActions.clear()
-                updateUiState(showToast = true, isCorrect = true)
+                updateUiState()
             }
         }
     }
@@ -130,13 +133,27 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
         // Analyze strategy deviations
         val analysisResult = strategyAnalyzer.analyzeHand(engine)
 
+        // Update combo counter when game ends
+        if (gameOver && previousGameState != GameState.GAME_OVER) {
+            // Only increment combo if no incorrect actions were attempted
+            if (analysisResult.followedBasicStrategy && attemptedIncorrectActions.isEmpty()) {
+                comboCount++
+            } else if (!attemptedIncorrectActions.isEmpty()) {
+                // Don't reset to 0 here since we already did it when the wrong action was tapped
+                // Just don't increment
+            } else {
+                comboCount = 0
+            }
+        }
+        previousGameState = gameState
+
         // Calculate correct action for current state
         val correctAction = getCurrentCorrectAction()
 
         // Create toast message if needed
         val toastMessage = if (showToast) {
             com.example.blaccjacc.`interface`.ToastMessage(
-                message = if (isCorrect) "Correct" else "Incorrect",
+                message = if (isCorrect) "Correct" else "Try again",
                 backgroundColor = if (isCorrect) androidx.compose.ui.graphics.Color(0xFF4CAF50) else androidx.compose.ui.graphics.Color(0xFFF44336)
             )
         } else {
@@ -163,7 +180,8 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
             handResults = if (gameOver) engine.getHandResults() else emptyList(),
             correctAction = correctAction,
             attemptedIncorrectActions = attemptedIncorrectActions.toSet(),
-            toastMessage = toastMessage
+            toastMessage = toastMessage,
+            comboCount = comboCount
         )
     }
 }

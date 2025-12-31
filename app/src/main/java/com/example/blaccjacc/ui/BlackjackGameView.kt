@@ -7,13 +7,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,20 +71,80 @@ fun BlackjackGameView(
         color = Color(0xFF0D5A2C)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Dealer Section
-                Row(modifier = Modifier.weight(3f)) {
-                    DealerSection(uiState)
+            // Combo counter in top left corner
+            if (uiState.comboCount > 0) {
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2196F3)),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Combo: ${uiState.comboCount}",
+                            fontSize = if (isLandscape) 12.sp else 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+
+            if (isLandscape) {
+                // Landscape layout: hands centered, result on right
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(modifier = Modifier.weight(1f)) {
+                        // Dealer and Player centered
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            // Dealer Section
+                            Box(modifier = Modifier.weight(1f)) {
+                                DealerSection(uiState)
+                            }
+
+                            // Player Section
+                            Box(modifier = Modifier.weight(1f)) {
+                                PlayerSection(uiState)
+                            }
+                        }
+                    }
+
+                    // Action Buttons at bottom
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(buttonHeight)) {
+                        ActionButtons(
+                            uiState = uiState,
+                            onHit = { controller.hit() },
+                            onStand = { controller.stand() },
+                            onDouble = { controller.double() },
+                            onSplit = { controller.split() },
+                            onNewHand = { controller.startNewHand() }
+                        )
+                    }
                 }
 
-                // Game Result
-                Row(modifier = Modifier.weight(2f)) {
-                    if (uiState.gameState == GameState.GAME_OVER) {
+                // Game Result positioned in the upper right corner (absolute positioning)
+                if (uiState.gameState == GameState.GAME_OVER) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(end = 8.dp, top = 8.dp)
+                            .width(250.dp)
+                            .fillMaxHeight(0.45f),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
                         if (uiState.hasSplit) {
                             MultiHandResultDisplay(uiState.handResults)
                         } else {
@@ -88,21 +154,47 @@ fun BlackjackGameView(
                         }
                     }
                 }
+            } else {
+                // Portrait layout: original vertical layout
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Dealer Section
+                    Row(modifier = Modifier.weight(4f)) {
+                        DealerSection(uiState)
+                    }
 
-                Row(modifier = Modifier.weight(3f)) {
-                    PlayerSection(uiState)
-                }
+                    // Game Result
+                    Row(modifier = Modifier.weight(2f)) {
+                        if (uiState.gameState == GameState.GAME_OVER) {
+                            if (uiState.hasSplit) {
+                                MultiHandResultDisplay(uiState.handResults)
+                            } else {
+                                val firstResult =
+                                    uiState.gameResults.firstOrNull()?.second ?: GameResult.IN_PROGRESS
+                                GameResultDisplay(firstResult)
+                            }
+                        }
+                    }
 
-                Row(modifier = Modifier.weight(1f)) {
-                    // Action Buttons
-                    ActionButtons(
-                        uiState = uiState,
-                        onHit = { controller.hit() },
-                        onStand = { controller.stand() },
-                        onDouble = { controller.double() },
-                        onSplit = { controller.split() },
-                        onNewHand = { controller.startNewHand() }
-                    )
+                    Row(modifier = Modifier.weight(4f)) {
+                        PlayerSection(uiState)
+                    }
+
+                    Row(modifier = Modifier.weight(1f)) {
+                        // Action Buttons
+                        ActionButtons(
+                            uiState = uiState,
+                            onHit = { controller.hit() },
+                            onStand = { controller.stand() },
+                            onDouble = { controller.double() },
+                            onSplit = { controller.split() },
+                            onNewHand = { controller.startNewHand() }
+                        )
+                    }
                 }
             }
 
@@ -139,6 +231,7 @@ fun DealerSection(uiState: BlackjackUiState) {
 
     val titleSize = if (isLandscape) 18.sp else 24.sp
     val valueSize = if (isLandscape) 14.sp else 18.sp
+    val statusSize = if (isLandscape) 13.sp else 16.sp
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
@@ -181,7 +274,7 @@ fun DealerSection(uiState: BlackjackUiState) {
         if (uiState.dealerIsBusted) {
             Text(
                 text = "BUST!",
-                fontSize = 20.sp,
+                fontSize = statusSize,
                 fontWeight = FontWeight.Bold,
                 color = Color.Red
             )
@@ -217,7 +310,8 @@ fun PlayerSection(uiState: BlackjackUiState) {
                 uiState.playerHands.forEach { hand ->
                     PlayerHandDisplay(
                         hand = hand,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        showHandLabel = true
                     )
                 }
             }
@@ -226,7 +320,8 @@ fun PlayerSection(uiState: BlackjackUiState) {
             if (hand != null) {
                 PlayerHandDisplay(
                     hand = hand,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    showHandLabel = false
                 )
             }
         }
@@ -236,7 +331,8 @@ fun PlayerSection(uiState: BlackjackUiState) {
 @Composable
 fun PlayerHandDisplay(
     hand: com.example.blaccjacc.`interface`.PlayerHandUiState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showHandLabel: Boolean = false
 ) {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
@@ -255,7 +351,7 @@ fun PlayerHandDisplay(
             )
             .padding(if (isLandscape) 4.dp else 8.dp)
     ) {
-        if (hand.handIndex > 0 || hand.isSplitFromAces) {
+        if (showHandLabel || hand.isSplitFromAces) {
             Text(
                 text = "Hand ${hand.handIndex + 1}",
                 fontSize = handLabelSize,
@@ -306,12 +402,19 @@ fun CardRow(
     showHoleCard: Boolean,
     totalCards: Int
 ) {
+    var previousCardCount by remember { mutableStateOf(0) }
+
+    LaunchedEffect(cards.size) {
+        previousCardCount = cards.size
+    }
+
     Row(
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier.padding(8.dp)
     ) {
-        cards.forEach { card ->
-            CardDisplay(card)
+        cards.forEachIndexed { index, card ->
+            val isNew = index >= previousCardCount - 1 && cards.size > previousCardCount
+            CardDisplay(card = card, isNew = isNew)
             Spacer(modifier = Modifier.width(8.dp))
         }
 
@@ -322,7 +425,7 @@ fun CardRow(
 }
 
 @Composable
-fun CardDisplay(card: Card) {
+fun CardDisplay(card: Card, isNew: Boolean = false) {
     val suitEmoji = when (card.suit) {
         Suit.HEARTS -> "♥️"
         Suit.DIAMONDS -> "♦️"
@@ -337,10 +440,36 @@ fun CardDisplay(card: Card) {
     val cardHeight = if (isLandscape) 60.dp else 90.dp
     val fontSize = if (isLandscape) 14.sp else 20.sp
 
+    // Animation for new cards
+    var animationStarted by remember { mutableStateOf(!isNew) }
+
+    LaunchedEffect(isNew) {
+        if (isNew) {
+            animationStarted = true
+        }
+    }
+
+    val scale by animateFloatAsState(
+        targetValue = if (animationStarted || !isNew) 1f else 0f,
+        animationSpec = tween(durationMillis = 100),
+        label = "cardScale"
+    )
+
+    val alpha by animateFloatAsState(
+        targetValue = if (animationStarted || !isNew) 1f else 0f,
+        animationSpec = tween(durationMillis = 100),
+        label = "cardAlpha"
+    )
+
     Card(
         modifier = Modifier
             .width(cardWidth)
-            .height(cardHeight),
+            .height(cardHeight)
+            .graphicsLayer(
+                scaleX = scale,
+                scaleY = scale,
+                alpha = alpha
+            ),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
@@ -402,6 +531,8 @@ fun GameResultDisplay(result: GameResult) {
         GameResult.IN_PROGRESS -> "" to Color.Transparent
     }
 
+    val textColor = if (result == GameResult.PUSH) Color.Black else Color.White
+
     if (text.isNotEmpty()) {
         Card(
             modifier = Modifier.padding(16.dp),
@@ -417,7 +548,7 @@ fun GameResultDisplay(result: GameResult) {
                     text = text,
                     fontSize = calculatedSize,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = textColor,
                     modifier = Modifier.padding(16.dp)
                 )
             }

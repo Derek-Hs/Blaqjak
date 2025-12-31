@@ -45,5 +45,6 @@ data class BlackjackUiState(
     val handResults: List<HandResult> = emptyList(),
     val correctAction: com.example.blaccjacc.model.PlayerAction? = null,
     val attemptedIncorrectActions: Set<com.example.blaccjacc.model.PlayerAction> = emptySet(),
-    val toastMessage: ToastMessage? = null
+    val toastMessage: ToastMessage? = null,
+    val comboCount: Int = 0
 )
