@@ -43,44 +43,42 @@ fun BlackjackGameView(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Dealer Section
-            DealerSection(uiState)
-
-            Spacer(modifier = Modifier.height(verticalSpacing))
+            Row(modifier = Modifier.weight(3f)) {
+                DealerSection(uiState)
+            }
 
             // Game Result
-            if (uiState.gameState == GameState.GAME_OVER) {
-                if (uiState.hasSplit) {
-                    MultiHandResultDisplay(uiState.handResults)
-                } else {
-                    val firstResult = uiState.gameResults.firstOrNull()?.second ?: GameResult.IN_PROGRESS
-                    GameResultDisplay(firstResult)
+            Row(modifier = Modifier.weight(2f)) {
+                if (uiState.gameState == GameState.GAME_OVER) {
+                    if (uiState.hasSplit) {
+                        MultiHandResultDisplay(uiState.handResults)
+                    } else {
+                        val firstResult =
+                            uiState.gameResults.firstOrNull()?.second ?: GameResult.IN_PROGRESS
+                        GameResultDisplay(firstResult)
+                    }
                 }
             }
 
-            // Flexible spacer to anchor player section at consistent position
-            Spacer(modifier = Modifier.height(if (isLandscape) 8.dp else 32.dp))
+            Row(modifier = Modifier.weight(3f)) {
+                PlayerSection(uiState)
+            }
 
-            // Player Section - anchored position
-            PlayerSection(uiState)
-
-            Spacer(modifier = Modifier.height(verticalSpacing))
-
-            // Action Buttons
-            ActionButtons(
-                uiState = uiState,
-                onHit = { controller.hit() },
-                onStand = { controller.stand() },
-                onDouble = { controller.double() },
-                onSplit = { controller.split() },
-                onNewHand = { controller.startNewHand() }
-            )
-
-            Spacer(modifier = Modifier.height(verticalSpacing))
+            Row(modifier = Modifier.weight(1f)) {
+                // Action Buttons
+                ActionButtons(
+                    uiState = uiState,
+                    onHit = { controller.hit() },
+                    onStand = { controller.stand() },
+                    onDouble = { controller.double() },
+                    onSplit = { controller.split() },
+                    onNewHand = { controller.startNewHand() }
+                )
+            }
         }
     }
 }
@@ -361,13 +359,16 @@ fun GameResultDisplay(result: GameResult) {
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = color)
         ) {
-            Text(
-                text = text,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.padding(16.dp)
-            )
+            BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+                val calculatedSize = (maxHeight.value * 0.5f).sp
+                Text(
+                    text = text,
+                    fontSize = calculatedSize,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
         }
     }
 }
