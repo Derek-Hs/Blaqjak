@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.blaccjacc.`interface`.BlackjackHandController
@@ -456,7 +457,7 @@ fun CardDisplay(card: Card, isNew: Boolean = false, cardWidth: Dp = 60.dp, cardH
     }
 
     // Scale font size based on card width
-    val fontSize = (cardWidth.value / 3).sp
+    val fontSize = (cardWidth.value / 3f).sp
 
     // Animation for new cards
     var animationStarted by remember { mutableStateOf(!isNew) }
@@ -512,7 +513,7 @@ fun CardDisplay(card: Card, isNew: Boolean = false, cardWidth: Dp = 60.dp, cardH
 @Composable
 fun HoleCardDisplay(cardWidth: Dp = 60.dp, cardHeight: Dp = 90.dp) {
     // Scale font size based on card width
-    val fontSize = (cardWidth.value / 2.5).sp
+    val fontSize = (cardWidth.value / 2.5f).sp
 
     Card(
         modifier = Modifier
