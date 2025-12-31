@@ -360,7 +360,7 @@ fun GameResultDisplay(result: GameResult) {
             colors = CardDefaults.cardColors(containerColor = color)
         ) {
             BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
-                val calculatedSize = (maxHeight.value * 0.5f).sp
+                val calculatedSize = (maxHeight.value * 0.25f).sp
                 Text(
                     text = text,
                     fontSize = calculatedSize,
@@ -486,9 +486,6 @@ fun ActionButtons(
                         text = "Hit",
                         fontSize = actionFontSize,
                         fontWeight = FontWeight.Bold,
-                        textDecoration = if (attemptedIncorrect.contains(PlayerAction.HIT))
-                            androidx.compose.ui.text.style.TextDecoration.LineThrough
-                        else null,
                         color = if (attemptedIncorrect.contains(PlayerAction.HIT))
                             Color.Red
                         else Color.White
@@ -509,9 +506,6 @@ fun ActionButtons(
                         text = "Stand",
                         fontSize = actionFontSize,
                         fontWeight = FontWeight.Bold,
-                        textDecoration = if (attemptedIncorrect.contains(PlayerAction.STAND))
-                            androidx.compose.ui.text.style.TextDecoration.LineThrough
-                        else null,
                         color = if (attemptedIncorrect.contains(PlayerAction.STAND))
                             Color.Red
                         else Color.White
@@ -532,9 +526,6 @@ fun ActionButtons(
                         text = "Double",
                         fontSize = actionFontSize,
                         fontWeight = FontWeight.Bold,
-                        textDecoration = if (attemptedIncorrect.contains(PlayerAction.DOUBLE))
-                            androidx.compose.ui.text.style.TextDecoration.LineThrough
-                        else null,
                         color = if (attemptedIncorrect.contains(PlayerAction.DOUBLE))
                             Color.Red
                         else Color.White
@@ -555,9 +546,6 @@ fun ActionButtons(
                         text = "Split",
                         fontSize = actionFontSize,
                         fontWeight = FontWeight.Bold,
-                        textDecoration = if (attemptedIncorrect.contains(PlayerAction.SPLIT))
-                            androidx.compose.ui.text.style.TextDecoration.LineThrough
-                        else null,
                         color = if (attemptedIncorrect.contains(PlayerAction.SPLIT))
                             Color.Red
                         else Color.White
