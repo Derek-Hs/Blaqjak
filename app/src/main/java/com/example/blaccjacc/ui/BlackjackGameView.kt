@@ -408,24 +408,46 @@ fun CardRow(
         previousCardCount = cards.size
     }
 
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.padding(8.dp)
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
     ) {
-        cards.forEachIndexed { index, card ->
-            val isNew = index >= previousCardCount - 1 && cards.size > previousCardCount
-            CardDisplay(card = card, isNew = isNew)
-            Spacer(modifier = Modifier.width(8.dp))
-        }
+        val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+        val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
 
-        if (!showHoleCard && totalCards > cards.size) {
-            HoleCardDisplay()
+        // Calculate card size based on available width and number of cards
+        val baseCardWidth = if (isLandscape) 40.dp else 60.dp
+        val baseCardHeight = if (isLandscape) 60.dp else 90.dp
+        val spacing = 8.dp
+
+        val displayedCardCount = if (showHoleCard) cards.size else cards.size + if (totalCards > cards.size) 1 else 0
+        val totalSpacing = spacing * (displayedCardCount + 1)
+        val availableWidth = maxWidth - totalSpacing
+        val maxCardWidth = availableWidth / displayedCardCount
+
+        // Use smaller of base size or calculated size
+        val cardWidth = minOf(baseCardWidth, maxCardWidth)
+        val cardHeight = cardWidth * 1.5f // Maintain aspect ratio
+
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(8.dp)
+        ) {
+            cards.forEachIndexed { index, card ->
+                val isNew = index >= previousCardCount - 1 && cards.size > previousCardCount
+                CardDisplay(card = card, isNew = isNew, cardWidth = cardWidth, cardHeight = cardHeight)
+                Spacer(modifier = Modifier.width(spacing))
+            }
+
+            if (!showHoleCard && totalCards > cards.size) {
+                HoleCardDisplay(cardWidth = cardWidth, cardHeight = cardHeight)
+            }
         }
     }
 }
 
 @Composable
-fun CardDisplay(card: Card, isNew: Boolean = false) {
+fun CardDisplay(card: Card, isNew: Boolean = false, cardWidth: Dp = 60.dp, cardHeight: Dp = 90.dp) {
     val suitEmoji = when (card.suit) {
         Suit.HEARTS -> "♥️"
         Suit.DIAMONDS -> "♦️"
@@ -433,12 +455,8 @@ fun CardDisplay(card: Card, isNew: Boolean = false) {
         Suit.SPADES -> "♠️"
     }
 
-    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-
-    val cardWidth = if (isLandscape) 40.dp else 60.dp
-    val cardHeight = if (isLandscape) 60.dp else 90.dp
-    val fontSize = if (isLandscape) 14.sp else 20.sp
+    // Scale font size based on card width
+    val fontSize = (cardWidth.value / 3).sp
 
     // Animation for new cards
     var animationStarted by remember { mutableStateOf(!isNew) }
@@ -492,13 +510,9 @@ fun CardDisplay(card: Card, isNew: Boolean = false) {
 }
 
 @Composable
-fun HoleCardDisplay() {
-    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-
-    val cardWidth = if (isLandscape) 40.dp else 60.dp
-    val cardHeight = if (isLandscape) 60.dp else 90.dp
-    val fontSize = if (isLandscape) 16.sp else 24.sp
+fun HoleCardDisplay(cardWidth: Dp = 60.dp, cardHeight: Dp = 90.dp) {
+    // Scale font size based on card width
+    val fontSize = (cardWidth.value / 2.5).sp
 
     Card(
         modifier = Modifier
@@ -658,7 +672,7 @@ fun ActionButtons(
                 // Hit Button - always visible
                 Button(
                     onClick = onHit,
-                    enabled = uiState.canHit && !attemptedIncorrect.contains(PlayerAction.HIT),
+                    enabled = uiState.canHit,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
@@ -669,16 +683,14 @@ fun ActionButtons(
                         text = "Hit",
                         fontSize = actionFontSize,
                         fontWeight = FontWeight.Bold,
-                        color = if (attemptedIncorrect.contains(PlayerAction.HIT))
-                            Color.Red
-                        else Color.White
+                        color = Color.White
                     )
                 }
 
                 // Stand Button - always visible
                 Button(
                     onClick = onStand,
-                    enabled = uiState.canStand && !attemptedIncorrect.contains(PlayerAction.STAND),
+                    enabled = uiState.canStand,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
@@ -689,16 +701,14 @@ fun ActionButtons(
                         text = "Stand",
                         fontSize = actionFontSize,
                         fontWeight = FontWeight.Bold,
-                        color = if (attemptedIncorrect.contains(PlayerAction.STAND))
-                            Color.Red
-                        else Color.White
+                        color = Color.White
                     )
                 }
 
                 // Double Button - always visible
                 Button(
                     onClick = onDouble,
-                    enabled = uiState.canDouble && !attemptedIncorrect.contains(PlayerAction.DOUBLE),
+                    enabled = uiState.canDouble,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
@@ -709,16 +719,14 @@ fun ActionButtons(
                         text = "Double",
                         fontSize = actionFontSize,
                         fontWeight = FontWeight.Bold,
-                        color = if (attemptedIncorrect.contains(PlayerAction.DOUBLE))
-                            Color.Red
-                        else Color.White
+                        color = Color.White
                     )
                 }
 
                 // Split Button - always visible
                 Button(
                     onClick = onSplit,
-                    enabled = uiState.canSplit && !attemptedIncorrect.contains(PlayerAction.SPLIT),
+                    enabled = uiState.canSplit,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
@@ -729,9 +737,7 @@ fun ActionButtons(
                         text = "Split",
                         fontSize = actionFontSize,
                         fontWeight = FontWeight.Bold,
-                        color = if (attemptedIncorrect.contains(PlayerAction.SPLIT))
-                            Color.Red
-                        else Color.White
+                        color = Color.White
                     )
                 }
             }
