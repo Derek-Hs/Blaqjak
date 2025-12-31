@@ -20,6 +20,7 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
     private val attemptedIncorrectActions = mutableSetOf<PlayerAction>()
     private var comboCount = 0
     private var previousGameState = GameState.INITIAL
+    private var hadIncorrectActionThisHand = false
 
     init {
         startNewHand()
@@ -28,6 +29,7 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
     override fun startNewHand() {
         viewModelScope.launch {
             attemptedIncorrectActions.clear()
+            hadIncorrectActionThisHand = false
             engine.startNewHand()
             updateUiState()
         }
@@ -39,6 +41,7 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
         if (correctAction != null && action != correctAction) {
             // Incorrect action - mark as attempted but don't execute
             attemptedIncorrectActions.add(action)
+            hadIncorrectActionThisHand = true
             comboCount = 0  // Reset combo on incorrect action
             updateUiState(showToast = true, isCorrect = false)
         } else {
@@ -135,10 +138,10 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
 
         // Update combo counter when game ends
         if (gameOver && previousGameState != GameState.GAME_OVER) {
-            // Only increment combo if no incorrect actions were attempted
-            if (analysisResult.followedBasicStrategy && attemptedIncorrectActions.isEmpty()) {
+            // Only increment combo if no incorrect actions were attempted during the entire hand
+            if (analysisResult.followedBasicStrategy && !hadIncorrectActionThisHand) {
                 comboCount++
-            } else if (!attemptedIncorrectActions.isEmpty()) {
+            } else if (hadIncorrectActionThisHand) {
                 // Don't reset to 0 here since we already did it when the wrong action was tapped
                 // Just don't increment
             } else {
