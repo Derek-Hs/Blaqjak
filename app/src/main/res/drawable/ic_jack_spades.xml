@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Background circle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,54m-54,0a54,54 0,1 1,108 0a54,54 0,1 1,-108 0"/>
+
+    <!-- Black border -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M54,54m-50,0a50,50 0,1 1,100 0a50,50 0,1 1,-100 0"/>
+
+    <!-- White inner circle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,54m-46,0a46,46 0,1 1,92 0a46,46 0,1 1,-92 0"/>
+
+    <!-- Letter J -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M40,28 L48,28 L48,58 Q48,68 38,68 Q28,68 28,58 L34,58 Q34,62 38,62 Q42,62 42,58 L42,28 Z"/>
+
+    <!-- Spade symbol -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M 54,72 C 54,72 62,80 62,86 C 62,90 59,92 54,92 C 49,92 46,90 46,86 C 46,80 54,72 54,72 Z M 54,72 Q 46,78 46,86 L 48,86 L 48,88 L 52,88 L 52,92 L 56,92 L 56,88 L 60,88 L 60,86 L 62,86 Q 62,78 54,72 Z"/>
+
+    <!-- Spade heart shape -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M 54,72 Q 46,78 46,84 Q 46,88 49,88 Q 51,88 52,86 Q 53,88 54,88 Q 55,88 56,86 Q 57,88 59,88 Q 62,88 62,84 Q 62,78 54,72 Z"/>
+</vector>

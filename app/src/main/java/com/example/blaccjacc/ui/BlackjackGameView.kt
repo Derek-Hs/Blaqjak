@@ -434,118 +434,134 @@ fun ActionButtons(
     onSplit: () -> Unit,
     onNewHand: () -> Unit
 ) {
-    if (uiState.gameState == GameState.GAME_OVER) {
-        Button(
-            onClick = onNewHand,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
-        ) {
-            Text(
-                text = "New Hand",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-    } else {
-        val correctAction = uiState.correctAction
-        val attemptedIncorrect = uiState.attemptedIncorrectActions
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            // Hit Button - always visible
+    val buttonHeight = if (isLandscape) 44.dp else 56.dp
+    val actionFontSize = if (isLandscape) 13.sp else 13.sp
+    val newHandFontSize = if (isLandscape) 14.sp else 18.sp
+
+    // Fixed height container to prevent repositioning
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(buttonHeight),
+        contentAlignment = Alignment.Center
+    ) {
+        if (uiState.gameState == GameState.GAME_OVER) {
             Button(
-                onClick = onHit,
-                enabled = uiState.canHit && !attemptedIncorrect.contains(PlayerAction.HIT),
+                onClick = onNewHand,
                 modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp)
-                    .padding(horizontal = 2.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
             ) {
                 Text(
-                    text = "Hit",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    textDecoration = if (attemptedIncorrect.contains(PlayerAction.HIT))
-                        androidx.compose.ui.text.style.TextDecoration.LineThrough
-                    else null,
-                    color = if (attemptedIncorrect.contains(PlayerAction.HIT))
-                        Color.Red
-                    else Color.White
+                    text = "New Hand",
+                    fontSize = newHandFontSize,
+                    fontWeight = FontWeight.Bold
                 )
             }
+        } else {
+            val correctAction = uiState.correctAction
+            val attemptedIncorrect = uiState.attemptedIncorrectActions
 
-            // Stand Button - always visible
-            Button(
-                onClick = onStand,
-                enabled = uiState.canStand && !attemptedIncorrect.contains(PlayerAction.STAND),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp)
-                    .padding(horizontal = 2.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Stand",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    textDecoration = if (attemptedIncorrect.contains(PlayerAction.STAND))
-                        androidx.compose.ui.text.style.TextDecoration.LineThrough
-                    else null,
-                    color = if (attemptedIncorrect.contains(PlayerAction.STAND))
-                        Color.Red
-                    else Color.White
-                )
-            }
+                // Hit Button - always visible
+                Button(
+                    onClick = onHit,
+                    enabled = uiState.canHit && !attemptedIncorrect.contains(PlayerAction.HIT),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .padding(horizontal = 2.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                ) {
+                    Text(
+                        text = "Hit",
+                        fontSize = actionFontSize,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = if (attemptedIncorrect.contains(PlayerAction.HIT))
+                            androidx.compose.ui.text.style.TextDecoration.LineThrough
+                        else null,
+                        color = if (attemptedIncorrect.contains(PlayerAction.HIT))
+                            Color.Red
+                        else Color.White
+                    )
+                }
 
-            // Double Button - always visible
-            Button(
-                onClick = onDouble,
-                enabled = uiState.canDouble && !attemptedIncorrect.contains(PlayerAction.DOUBLE),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp)
-                    .padding(horizontal = 2.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800))
-            ) {
-                Text(
-                    text = "Double",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    textDecoration = if (attemptedIncorrect.contains(PlayerAction.DOUBLE))
-                        androidx.compose.ui.text.style.TextDecoration.LineThrough
-                    else null,
-                    color = if (attemptedIncorrect.contains(PlayerAction.DOUBLE))
-                        Color.Red
-                    else Color.White
-                )
-            }
+                // Stand Button - always visible
+                Button(
+                    onClick = onStand,
+                    enabled = uiState.canStand && !attemptedIncorrect.contains(PlayerAction.STAND),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .padding(horizontal = 2.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
+                ) {
+                    Text(
+                        text = "Stand",
+                        fontSize = actionFontSize,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = if (attemptedIncorrect.contains(PlayerAction.STAND))
+                            androidx.compose.ui.text.style.TextDecoration.LineThrough
+                        else null,
+                        color = if (attemptedIncorrect.contains(PlayerAction.STAND))
+                            Color.Red
+                        else Color.White
+                    )
+                }
 
-            // Split Button - always visible
-            Button(
-                onClick = onSplit,
-                enabled = uiState.canSplit && !attemptedIncorrect.contains(PlayerAction.SPLIT),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp)
-                    .padding(horizontal = 2.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
-            ) {
-                Text(
-                    text = "Split",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    textDecoration = if (attemptedIncorrect.contains(PlayerAction.SPLIT))
-                        androidx.compose.ui.text.style.TextDecoration.LineThrough
-                    else null,
-                    color = if (attemptedIncorrect.contains(PlayerAction.SPLIT))
-                        Color.Red
-                    else Color.White
-                )
+                // Double Button - always visible
+                Button(
+                    onClick = onDouble,
+                    enabled = uiState.canDouble && !attemptedIncorrect.contains(PlayerAction.DOUBLE),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .padding(horizontal = 2.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800))
+                ) {
+                    Text(
+                        text = "Double",
+                        fontSize = actionFontSize,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = if (attemptedIncorrect.contains(PlayerAction.DOUBLE))
+                            androidx.compose.ui.text.style.TextDecoration.LineThrough
+                        else null,
+                        color = if (attemptedIncorrect.contains(PlayerAction.DOUBLE))
+                            Color.Red
+                        else Color.White
+                    )
+                }
+
+                // Split Button - always visible
+                Button(
+                    onClick = onSplit,
+                    enabled = uiState.canSplit && !attemptedIncorrect.contains(PlayerAction.SPLIT),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .padding(horizontal = 2.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
+                ) {
+                    Text(
+                        text = "Split",
+                        fontSize = actionFontSize,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = if (attemptedIncorrect.contains(PlayerAction.SPLIT))
+                            androidx.compose.ui.text.style.TextDecoration.LineThrough
+                        else null,
+                        color = if (attemptedIncorrect.contains(PlayerAction.SPLIT))
+                            Color.Red
+                        else Color.White
+                    )
+                }
             }
         }
     }
