@@ -382,7 +382,7 @@ fun PlayerHandDisplay(
                 color = Color.Red
             )
             hand.hasBlackjack -> Text(
-                text = "BJ!",
+                text = "Blackjack!",
                 fontSize = statusSize,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFFFD700)
@@ -663,7 +663,7 @@ fun ActionButtons(
                         .weight(1f)
                         .fillMaxHeight()
                         .padding(horizontal = 2.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5F6368))
                 ) {
                     Text(
                         text = "Hit",
@@ -683,7 +683,7 @@ fun ActionButtons(
                         .weight(1f)
                         .fillMaxHeight()
                         .padding(horizontal = 2.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5F6368))
                 ) {
                     Text(
                         text = "Stand",
@@ -703,7 +703,7 @@ fun ActionButtons(
                         .weight(1f)
                         .fillMaxHeight()
                         .padding(horizontal = 2.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5F6368))
                 ) {
                     Text(
                         text = "Double",
@@ -723,7 +723,7 @@ fun ActionButtons(
                         .weight(1f)
                         .fillMaxHeight()
                         .padding(horizontal = 2.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5F6368))
                 ) {
                     Text(
                         text = "Split",
