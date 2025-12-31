@@ -13,7 +13,6 @@ data class PlayerHandUiState(
     val isBusted: Boolean,
     val hasBlackjack: Boolean,
     val isSoft: Boolean,
-    val bet: Double,
     val isActive: Boolean,
     val isCompleted: Boolean,
     val isSplitFromAces: Boolean
@@ -36,7 +35,6 @@ data class BlackjackUiState(
     val showDealerHoleCard: Boolean = false,
     val strategyDeviations: List<StrategyDeviation> = emptyList(),
     val followedBasicStrategy: Boolean = true,
-    val currentBet: Double = 10.0,
     val handResults: List<HandResult> = emptyList(),
     val correctAction: com.example.blaccjacc.model.PlayerAction? = null,
     val attemptedIncorrectActions: Set<com.example.blaccjacc.model.PlayerAction> = emptySet()

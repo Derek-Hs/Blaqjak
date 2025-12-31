@@ -28,7 +28,6 @@ class BlackjackEngine(numberOfDecks: Int = 1) {
     private var activeHandIndex = 0
     private var dealerHand = Hand()
     private var gameState = GameState.INITIAL
-    private var currentBet: Double = 10.0
     private var hasSplit = false
     private val actionHistory = mutableListOf<ActionRecord>()
     private var snapshot: GameSnapshot? = null
@@ -52,20 +51,12 @@ class BlackjackEngine(numberOfDecks: Int = 1) {
         val handIndex: Int = 0
     )
 
-    fun setBet(amount: Double) {
-        require(amount > 0) { "Bet must be positive" }
-        currentBet = amount
-    }
-
-    fun getCurrentBet(): Double = currentBet
-
     fun getHandResults(): List<HandResult> {
         if (gameState != GameState.GAME_OVER) return emptyList()
 
         return playerHands.map { playerHand ->
             val result = calculateHandResult(playerHand)
-            val payout = calculatePayout(playerHand, result)
-            HandResult(playerHand.handIndex, result, playerHand.bet, payout)
+            HandResult(playerHand.handIndex, result)
         }
     }
 
@@ -80,16 +71,6 @@ class BlackjackEngine(numberOfDecks: Int = 1) {
             playerValue > dealerValue -> GameResult.PLAYER_WIN
             playerValue < dealerValue -> GameResult.DEALER_WIN
             else -> GameResult.PUSH
-        }
-    }
-
-    private fun calculatePayout(playerHand: PlayerHand, result: GameResult): Double {
-        return when (result) {
-            GameResult.PLAYER_BLACKJACK -> playerHand.bet * 2.5
-            GameResult.PLAYER_WIN -> playerHand.bet * 2.0
-            GameResult.PUSH -> playerHand.bet
-            GameResult.DEALER_WIN -> 0.0
-            GameResult.IN_PROGRESS -> 0.0
         }
     }
 
@@ -109,7 +90,6 @@ class BlackjackEngine(numberOfDecks: Int = 1) {
 
         playerHands.add(PlayerHand(
             hand = initialHand,
-            bet = currentBet,
             handIndex = 0,
             isSplitFromAces = false
         ))
@@ -211,14 +191,12 @@ class BlackjackEngine(numberOfDecks: Int = 1) {
         playerHands.clear()
         playerHands.add(PlayerHand(
             hand = hand1,
-            bet = currentBet,
             handIndex = 0,
             isSplitFromAces = isSplittingAces,
             isCompleted = isSplittingAces
         ))
         playerHands.add(PlayerHand(
             hand = hand2,
-            bet = currentBet,
             handIndex = 1,
             isSplitFromAces = isSplittingAces,
             isCompleted = isSplittingAces
@@ -284,8 +262,6 @@ class BlackjackEngine(numberOfDecks: Int = 1) {
         saveSnapshot()
         recordAction(PlayerAction.DOUBLE)
         val currentHand = getCurrentPlayerHand()
-
-        playerHands[activeHandIndex] = currentHand.copy(bet = currentHand.bet * 2)
 
         currentHand.hand.addCard(deck.deal())
 

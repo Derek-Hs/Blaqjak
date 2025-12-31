@@ -80,7 +80,7 @@ class BlackjackCLI(private val numberOfDecks: Int = 6) {
             println("\n┌─ YOUR HANDS ─────────────────────────┐")
             playerHands.forEach { hand ->
                 val indicator = if (hand.handIndex == activeIndex) "→" else " "
-                println("│ $indicator Hand ${hand.handIndex + 1} (Bet: $${hand.bet.toInt()})")
+                println("│ $indicator Hand ${hand.handIndex + 1}")
                 println("│   Cards: ${hand.hand}")
                 println("│   Value: ${hand.getValue()}")
                 if (hand.isSplitFromAces) {
@@ -210,12 +210,8 @@ class BlackjackCLI(private val numberOfDecks: Int = 6) {
             println("RESULTS:")
             handResults.forEach { handResult ->
                 val resultText = getResultMessage(handResult.result)
-                println("  Hand ${handResult.handIndex + 1}: $resultText (Bet: $${handResult.bet.toInt()}, Payout: $${handResult.payout.toInt()})")
+                println("  Hand ${handResult.handIndex + 1}: $resultText")
             }
-            val totalPayout = handResults.sumOf { it.payout }
-            val totalBet = handResults.sumOf { it.bet }
-            val netResult = totalPayout - totalBet
-            println("  Net: ${if (netResult >= 0) "+" else ""}$${netResult.toInt()}")
         } else {
             val result = engine.getResult()
             println(getResultMessage(result))

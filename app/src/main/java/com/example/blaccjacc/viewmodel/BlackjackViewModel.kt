@@ -80,12 +80,6 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
     }
 
 
-    override fun setBet(amount: Double) {
-        viewModelScope.launch {
-            engine.setBet(amount)
-            updateUiState()
-        }
-    }
 
     override fun getActionHistory(): List<BlackjackEngine.ActionRecord> {
         return engine.getActionHistory()
@@ -127,7 +121,6 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
                 isBusted = playerHand.isBusted(),
                 hasBlackjack = playerHand.isBlackjack(),
                 isSoft = playerHand.hand.isSoft(),
-                bet = playerHand.bet,
                 isActive = playerHand.handIndex == engine.getActiveHandIndex(),
                 isCompleted = playerHand.isCompleted,
                 isSplitFromAces = playerHand.isSplitFromAces
@@ -157,7 +150,6 @@ class BlackjackViewModel(numberOfDecks: Int = 1) : ViewModel(), BlackjackHandCon
             showDealerHoleCard = showDealerHoleCard,
             strategyDeviations = analysisResult.deviations,
             followedBasicStrategy = analysisResult.followedBasicStrategy,
-            currentBet = engine.getCurrentBet(),
             handResults = if (gameOver) engine.getHandResults() else emptyList(),
             correctAction = correctAction,
             attemptedIncorrectActions = attemptedIncorrectActions.toSet()

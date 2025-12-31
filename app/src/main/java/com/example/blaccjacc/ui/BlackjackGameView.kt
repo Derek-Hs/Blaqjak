@@ -30,6 +30,11 @@ fun BlackjackGameView(
     modifier: Modifier = Modifier
 ) {
     val uiState by controller.uiState.collectAsState()
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+    val verticalSpacing = if (isLandscape) 8.dp else 16.dp
+    val padding = if (isLandscape) 8.dp else 16.dp
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -38,13 +43,14 @@ fun BlackjackGameView(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Dealer Section
             DealerSection(uiState)
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(verticalSpacing))
 
             // Game Result
             if (uiState.gameState == GameState.GAME_OVER) {
@@ -57,12 +63,12 @@ fun BlackjackGameView(
             }
 
             // Flexible spacer to anchor player section at consistent position
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(if (isLandscape) 8.dp else 32.dp))
 
             // Player Section - anchored position
             PlayerSection(uiState)
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(verticalSpacing))
 
             // Action Buttons
             ActionButtons(
@@ -73,34 +79,42 @@ fun BlackjackGameView(
                 onSplit = { controller.split() },
                 onNewHand = { controller.startNewHand() }
             )
+
+            Spacer(modifier = Modifier.height(verticalSpacing))
         }
     }
 }
 
 @Composable
 fun DealerSection(uiState: BlackjackUiState) {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+    val titleSize = if (isLandscape) 18.sp else 24.sp
+    val valueSize = if (isLandscape) 14.sp else 18.sp
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "Dealer",
-            fontSize = 24.sp,
+            fontSize = titleSize,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(if (isLandscape) 4.dp else 8.dp))
 
         if (uiState.showDealerHoleCard) {
             Text(
                 text = "Value: ${uiState.dealerHandValue}",
-                fontSize = 18.sp,
+                fontSize = valueSize,
                 color = Color.White
             )
         } else {
             Text(
                 text = "Value: ?",
-                fontSize = 18.sp,
+                fontSize = valueSize,
                 color = Color.White
             )
         }
@@ -130,23 +144,28 @@ fun DealerSection(uiState: BlackjackUiState) {
 
 @Composable
 fun PlayerSection(uiState: BlackjackUiState) {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+    val titleSize = if (isLandscape) 18.sp else 24.sp
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
             text = "Player",
-            fontSize = 24.sp,
+            fontSize = titleSize,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(if (isLandscape) 4.dp else 8.dp))
 
         if (uiState.hasSplit) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterHorizontally)
             ) {
                 uiState.playerHands.forEach { hand ->
                     PlayerHandDisplay(
@@ -172,6 +191,13 @@ fun PlayerHandDisplay(
     hand: com.example.blaccjacc.`interface`.PlayerHandUiState,
     modifier: Modifier = Modifier
 ) {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+    val handLabelSize = if (isLandscape) 12.sp else 14.sp
+    val valueSize = if (isLandscape) 13.sp else 16.sp
+    val statusSize = if (isLandscape) 13.sp else 16.sp
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
@@ -180,27 +206,20 @@ fun PlayerHandDisplay(
                 if (hand.isActive) Color(0x44FFFFFF) else Color.Transparent,
                 shape = RoundedCornerShape(8.dp)
             )
-            .padding(8.dp)
+            .padding(if (isLandscape) 4.dp else 8.dp)
     ) {
         if (hand.handIndex > 0 || hand.isSplitFromAces) {
             Text(
                 text = "Hand ${hand.handIndex + 1}",
-                fontSize = 14.sp,
+                fontSize = handLabelSize,
                 color = if (hand.isActive) Color.Yellow else Color.White
             )
+            Spacer(modifier = Modifier.height(2.dp))
         }
 
         Text(
-            text = "Bet: $${hand.bet.toInt()}",
-            fontSize = 12.sp,
-            color = Color.White
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
             text = "Value: ${hand.handValue}${if (hand.isSoft) " (Soft)" else ""}",
-            fontSize = 16.sp,
+            fontSize = valueSize,
             color = Color.White
         )
 
@@ -215,19 +234,19 @@ fun PlayerHandDisplay(
         when {
             hand.isBusted -> Text(
                 text = "BUST!",
-                fontSize = 16.sp,
+                fontSize = statusSize,
                 fontWeight = FontWeight.Bold,
                 color = Color.Red
             )
             hand.hasBlackjack -> Text(
                 text = "BJ!",
-                fontSize = 16.sp,
+                fontSize = statusSize,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFFFD700)
             )
             hand.isSplitFromAces -> Text(
                 text = "(Aces)",
-                fontSize = 12.sp,
+                fontSize = if (isLandscape) 10.sp else 12.sp,
                 color = Color.LightGray
             )
         }
@@ -264,10 +283,17 @@ fun CardDisplay(card: Card) {
         Suit.SPADES -> "♠️"
     }
 
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+    val cardWidth = if (isLandscape) 40.dp else 60.dp
+    val cardHeight = if (isLandscape) 60.dp else 90.dp
+    val fontSize = if (isLandscape) 14.sp else 20.sp
+
     Card(
         modifier = Modifier
-            .width(60.dp)
-            .height(90.dp),
+            .width(cardWidth)
+            .height(cardHeight),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
@@ -277,7 +303,7 @@ fun CardDisplay(card: Card) {
         ) {
             Text(
                 text = "${card.rank.displayName}$suitEmoji",
-                fontSize = 20.sp,
+                fontSize = fontSize,
                 fontWeight = FontWeight.Bold,
                 color = if (card.suit == Suit.HEARTS || card.suit == Suit.DIAMONDS) {
                     Color.Red
@@ -291,10 +317,17 @@ fun CardDisplay(card: Card) {
 
 @Composable
 fun HoleCardDisplay() {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+    val cardWidth = if (isLandscape) 40.dp else 60.dp
+    val cardHeight = if (isLandscape) 60.dp else 90.dp
+    val fontSize = if (isLandscape) 16.sp else 24.sp
+
     Card(
         modifier = Modifier
-            .width(60.dp)
-            .height(90.dp),
+            .width(cardWidth)
+            .height(cardHeight),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1976D2))
     ) {
@@ -304,7 +337,7 @@ fun HoleCardDisplay() {
         ) {
             Text(
                 text = "?",
-                fontSize = 24.sp,
+                fontSize = fontSize,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
@@ -384,30 +417,10 @@ fun MultiHandResultDisplay(handResults: List<com.example.blaccjacc.model.HandRes
                         fontWeight = FontWeight.Bold,
                         color = color
                     )
-
-                    Text(
-                        text = "$${handResult.payout.toInt()}",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (handResult.payout > handResult.bet) Color(0xFF4CAF50) else Color.Red
-                    )
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            val totalPayout = handResults.sumOf { it.payout }
-            val totalBet = handResults.sumOf { it.bet }
-            val netResult = totalPayout - totalBet
-
-            Text(
-                text = "Net: ${if (netResult >= 0) "+" else ""}$${netResult.toInt()}",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (netResult > 0) Color(0xFF4CAF50) else if (netResult < 0) Color.Red else Color.Yellow
-            )
         }
     }
 }
@@ -443,6 +456,7 @@ fun ActionButtons(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+            // Hit Button - always visible
             Button(
                 onClick = onHit,
                 enabled = uiState.canHit && !attemptedIncorrect.contains(PlayerAction.HIT),
@@ -453,12 +467,19 @@ fun ActionButtons(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
             ) {
                 Text(
-                    text = if (attemptedIncorrect.contains(PlayerAction.HIT)) "Hit ❌" else "Hit",
+                    text = "Hit",
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = if (attemptedIncorrect.contains(PlayerAction.HIT))
+                        androidx.compose.ui.text.style.TextDecoration.LineThrough
+                    else null,
+                    color = if (attemptedIncorrect.contains(PlayerAction.HIT))
+                        Color.Red
+                    else Color.White
                 )
             }
 
+            // Stand Button - always visible
             Button(
                 onClick = onStand,
                 enabled = uiState.canStand && !attemptedIncorrect.contains(PlayerAction.STAND),
@@ -469,12 +490,19 @@ fun ActionButtons(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
             ) {
                 Text(
-                    text = if (attemptedIncorrect.contains(PlayerAction.STAND)) "Stand ❌" else "Stand",
+                    text = "Stand",
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = if (attemptedIncorrect.contains(PlayerAction.STAND))
+                        androidx.compose.ui.text.style.TextDecoration.LineThrough
+                    else null,
+                    color = if (attemptedIncorrect.contains(PlayerAction.STAND))
+                        Color.Red
+                    else Color.White
                 )
             }
 
+            // Double Button - always visible
             Button(
                 onClick = onDouble,
                 enabled = uiState.canDouble && !attemptedIncorrect.contains(PlayerAction.DOUBLE),
@@ -485,12 +513,19 @@ fun ActionButtons(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9800))
             ) {
                 Text(
-                    text = if (attemptedIncorrect.contains(PlayerAction.DOUBLE)) "Double ❌" else "Double",
+                    text = "Double",
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = if (attemptedIncorrect.contains(PlayerAction.DOUBLE))
+                        androidx.compose.ui.text.style.TextDecoration.LineThrough
+                    else null,
+                    color = if (attemptedIncorrect.contains(PlayerAction.DOUBLE))
+                        Color.Red
+                    else Color.White
                 )
             }
 
+            // Split Button - always visible
             Button(
                 onClick = onSplit,
                 enabled = uiState.canSplit && !attemptedIncorrect.contains(PlayerAction.SPLIT),
@@ -501,9 +536,15 @@ fun ActionButtons(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF9C27B0))
             ) {
                 Text(
-                    text = if (attemptedIncorrect.contains(PlayerAction.SPLIT)) "Split ❌" else "Split",
+                    text = "Split",
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = if (attemptedIncorrect.contains(PlayerAction.SPLIT))
+                        androidx.compose.ui.text.style.TextDecoration.LineThrough
+                    else null,
+                    color = if (attemptedIncorrect.contains(PlayerAction.SPLIT))
+                        Color.Red
+                    else Color.White
                 )
             }
         }

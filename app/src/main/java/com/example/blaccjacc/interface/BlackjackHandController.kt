@@ -11,7 +11,6 @@ interface BlackjackHandController {
     fun stand()
     fun double()
     fun split()
-    fun setBet(amount: Double)
     fun undoLastAction()
     fun getActionHistory(): List<BlackjackEngine.ActionRecord>
 }

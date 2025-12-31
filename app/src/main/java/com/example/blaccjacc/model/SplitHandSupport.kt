@@ -2,7 +2,6 @@ package com.example.blaccjacc.model
 
 data class PlayerHand(
     val hand: Hand,
-    val bet: Double,
     val handIndex: Int,
     val isSplitFromAces: Boolean = false,
     var isCompleted: Boolean = false
@@ -15,7 +14,5 @@ data class PlayerHand(
 
 data class HandResult(
     val handIndex: Int,
-    val result: GameResult,
-    val bet: Double,
-    val payout: Double
+    val result: GameResult
 )
